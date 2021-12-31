@@ -1,5 +1,5 @@
 import { Application, Router } from "https://deno.land/x/oak@v10.1.0/mod.ts";
-import { Feed } from "https://jspm.dev/feed";
+import { Feed } from "https://jspm.dev/feed@4.2.2";
 import MarkdownIt from "https://esm.sh/markdown-it@12.3.0";
 import {
   DOMParser,
