@@ -1,8 +1,7 @@
-import { Application, Router } from "https://deno.land/x/oak@v10.0.0/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak@v10.1.0/mod.ts";
 import { Feed } from "https://jspm.dev/feed";
 import {
   DOMParser,
-  Element,
   HTMLDocument,
 } from "https://deno.land/x/deno_dom@v0.1.13-alpha/deno-dom-wasm.ts";
 
@@ -17,33 +16,33 @@ router.get("/:ids", async (ctx) => {
     const document = new DOMParser()
       .parseFromString(html, "text/html") as HTMLDocument;
 
-    return Array.from(
-      document.querySelectorAll?.("#IllustThumbList .IllustThumb"),
+    return document.getElementById("IllustThumbList")?.getElementsByClassName(
+      "IllustThumb",
     )
       .map(
-        // FIXME: querySelectorAll actually returns a NodeList which contains Elements.
-        // However, deno-dom assumes that the return type is Node.
-        // Needs upstream bug fix.
-        (node) => {
-          const element = node as Element;
-          const title = element.querySelector(".IllustInfoDesc")?.innerHTML;
+        (element) => {
+          const title = element.getElementsByClassName("IllustInfoDesc")[0]
+            ?.innerHTML;
           const link = "https://poipiku.com" +
-            element.querySelector("a.IllustInfo")?.attributes.href as string;
+            element.getElementsByClassName("IllustInfo")[0]?.attributes
+              .href as string;
           const description = title;
-          const category = Array.from(element.querySelectorAll(".CategoryInfo"))
+          const category = element.getElementsByClassName("CategoryInfo")
             .map(
-              (node) => {
-                const element = node as Element;
-                const name = element.querySelector(".Category")?.innerHTML;
+              (element) => {
+                const name = element.getElementsByClassName("Category")[0]
+                  ?.innerHTML;
                 const domain = "https://poipiku.com" + element.attributes.href;
                 return { name, domain };
               },
             );
-          const authorId = element.querySelector(".IllustUser")?.attributes
-            .href.match(/[0-9]+/g)?.pop() ?? "nobody";
+          const authorId =
+            element.getElementsByClassName("IllustUser")[0]?.attributes
+              .href.match(/[0-9]+/g)?.pop() ?? "nobody";
           const author = [{
             email: authorId + "@example.com",
-            name: element.querySelector(".IllustUserName")?.innerHTML,
+            name: element.getElementsByClassName("IllustUserName")[0]
+              ?.innerHTML,
           }];
           return { title, description, id: link, link, category, author };
         },
@@ -61,8 +60,8 @@ router.get("/:ids", async (ctx) => {
   });
 
   items.flat().sort((firstEl, secondEl) =>
-    Number(secondEl.link.split("/").pop()?.replace(".html", "")) -
-    Number(firstEl.link.split("/").pop()?.replace(".html", ""))
+    Number(secondEl?.link.split("/").pop()?.replace(".html", "")) -
+    Number(firstEl?.link.split("/").pop()?.replace(".html", ""))
   ).forEach(feed.addItem);
   ctx.response.body = feed.rss2();
   ctx.response.headers.set("Content-Type", "application/rss+xml");
@@ -70,4 +69,4 @@ router.get("/:ids", async (ctx) => {
 
 app.use(router.routes());
 app.use(router.allowedMethods());
-await app.listen({ port: 8000 });
+await app.listen({ port: 80 });
