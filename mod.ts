@@ -1,5 +1,6 @@
 import { Application, Router } from "https://deno.land/x/oak@v10.1.0/mod.ts";
 import { Feed } from "https://jspm.dev/feed";
+import MarkdownIt from "https://esm.sh/markdown-it@12.3.0";
 import {
   DOMParser,
   HTMLDocument,
@@ -7,6 +8,7 @@ import {
 
 const app = new Application();
 const router = new Router();
+const markdownIt = new MarkdownIt();
 
 router.get("/:ids", async (ctx) => {
   const ids = ctx.params.ids.split(",");
@@ -67,6 +69,15 @@ router.get("/:ids", async (ctx) => {
   ctx.response.headers.set("Content-Type", "application/rss+xml");
 });
 
+router.get("/", async (ctx) => {
+  const response = await fetch(
+    "https://raw.githubusercontent.com/aiotter/poipiku2rss/master/README.md",
+  );
+  const markdown = await response.text();
+  ctx.response.body = markdownIt.render(markdown);
+  ctx.response.type = "html";
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
-await app.listen({ port: 80 });
+await app.listen({ port: 8000 });
