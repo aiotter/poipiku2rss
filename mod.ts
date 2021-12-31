@@ -18,16 +18,17 @@ router.get("/:ids", async (ctx) => {
     const document = new DOMParser()
       .parseFromString(html, "text/html") as HTMLDocument;
 
-    return document.getElementById("IllustThumbList")?.getElementsByClassName(
-      "IllustThumb",
-    )
+    return document.getElementById("IllustThumbList")
+      ?.getElementsByClassName("IllustThumb")
       .map(
         (element) => {
           const title = element.getElementsByClassName("IllustInfoDesc")[0]
             ?.innerHTML;
           const link = "https://poipiku.com" +
-            element.getElementsByClassName("IllustInfo")[0]?.attributes
-              .href as string;
+            element
+              .getElementsByClassName("IllustInfo")
+              .find((element) => element.tagName === "A")
+              ?.attributes.href;
           const description = title;
           const category = element.getElementsByClassName("CategoryInfo")
             .map(
